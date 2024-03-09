@@ -3,6 +3,6 @@ import filterResponse from "../controllers/filterResponse.js";
 
 const apiRouter = express.Router();
 
-apiRouter.get("/filteredResponses", filterResponse);
+apiRouter.get("/:formId/filteredResponses", filterResponse);
 
 export default apiRouter;
