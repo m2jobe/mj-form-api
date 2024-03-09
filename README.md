@@ -5,7 +5,6 @@ A robust and well-structured Express API for managing form data, with a focus on
 ## Features
 
 - **Filtering and validation of data from fillout.com**
-- _(List out other key features of your API – e.g., form submission, data storage, retrieval, etc.)_
 
 ## Prerequisites
 
