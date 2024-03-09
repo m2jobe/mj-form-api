@@ -1,10 +1,12 @@
 import { createHttpClient } from "../api/apiClient.js";
 import filterData from "../services/filterData.js";
-import { EXTERNAL_API_URL, API_KEY, DEMO_FORM_ID } from "../config.js";
+import { EXTERNAL_API_URL, API_KEY } from "../config.js";
 
 const apiClient = createHttpClient();
 
 async function filterResponse(req, res) {
+  const formId = req.params.formId;
+
   try {
     const validQueryParams = [
       "limit",
@@ -24,7 +26,7 @@ async function filterResponse(req, res) {
       }, {});
 
     const url = apiClient.constructURL(
-      `${EXTERNAL_API_URL}/v1/api/forms/${DEMO_FORM_ID}/submissions`,
+      `${EXTERNAL_API_URL}/v1/api/forms/${formId}/submissions`,
       filteredParams
     );
 
@@ -35,15 +37,26 @@ async function filterResponse(req, res) {
     const filteredData = filterData(response, req.query);
     res.json(filteredData);
   } catch (error) {
-    console.error(error);
+    console.log(error);
 
     // Handle potential validation errors from the external API
     const response = error.response;
     const responseStatus = (response && response.status) ?? 500;
-    const errorMessage =
+    let errorMessage =
       response.data?.message ?? "Error communicating with external API";
 
-    res.status(responseStatus).json({ message: JSON.parse(errorMessage) });
+    // Check if errorMessage is a string
+    if (typeof errorMessage === "string") {
+      try {
+        // Attempt to parse if it's a string
+        errorMessage = JSON.parse(errorMessage);
+      } catch (parseError) {
+        // If parsing fails, indicate that the message likely wasn't JSON
+        console.error("Error parsing error message as JSON:", parseError);
+      }
+    }
+
+    res.status(responseStatus).json({ message: errorMessage });
   }
 }
 

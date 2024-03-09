@@ -3,7 +3,7 @@ import filterResponse from "../filterResponse";
 import filterData from "../../services/filterData";
 import { EXTERNAL_API_URL, API_KEY, DEMO_FORM_ID } from "../../config";
 
-let req, res, next, mockHttpClient;
+let req, res, mockFilteredData, mockHttpClient, mockFormId;
 
 // Mocking the dependencies
 jest.mock("../../services/filterData");
@@ -22,9 +22,33 @@ jest.mock("../../api/apiClient", () => {
 });
 
 beforeEach(() => {
-  req = { query: { limit: 10, status: 200 } };
+  mockFormId = "form-id-1";
+  mockFilteredData = {
+    responses: [
+      {
+        questions: [
+          {
+            id: "nameId",
+            name: "What's your name?",
+            type: "ShortAnswer",
+            value: "Timmy",
+          },
+          {
+            id: "birthdayId",
+            name: "What is your birthday?",
+            type: "DatePicker",
+            value: "2024-02-22T05:01:47.691Z",
+          },
+        ],
+        submissionId: "abc",
+        submissionTime: "2024-05-16T23:20:05.324Z",
+      },
+    ],
+    totalResponses: 1,
+    pageCount: 1,
+  };
+  req = { query: { limit: 10, status: 200 }, params: { formId: mockFormId } };
   res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
-  next = jest.fn();
 });
 
 afterAll(() => {
@@ -33,15 +57,13 @@ afterAll(() => {
 
 describe("filterResponse", () => {
   it("should filter response data and send JSON response", async () => {
-    const mockFilteredData = [{ id: 1 }];
-
     filterData.mockReturnValue(mockFilteredData);
 
-    await filterResponse(req, res, next);
+    await filterResponse(req, res);
 
     expect(createHttpClient).toHaveBeenCalledWith();
     expect(mockHttpClient.constructURL).toHaveBeenCalledWith(
-      `${EXTERNAL_API_URL}/v1/api/forms/${DEMO_FORM_ID}/submissions`,
+      `${EXTERNAL_API_URL}/v1/api/forms/${mockFormId}/submissions`,
       { limit: [10], status: [200] }
     );
     expect(mockHttpClient.get).toHaveBeenCalledWith("mocked-url", {
@@ -53,6 +75,5 @@ describe("filterResponse", () => {
     );
     expect(res.json).toHaveBeenCalledWith(mockFilteredData);
     expect(res.status).not.toHaveBeenCalled();
-    expect(next).not.toHaveBeenCalled();
   });
 });
