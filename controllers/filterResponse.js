@@ -37,13 +37,11 @@ async function filterResponse(req, res) {
     const filteredData = filterData(response, req.query);
     res.json(filteredData);
   } catch (error) {
-    console.log(error);
-
     // Handle potential validation errors from the external API
     const response = error.response;
     const responseStatus = (response && response.status) ?? 500;
     let errorMessage =
-      response.data?.message ?? "Error communicating with external API";
+      response?.data?.message ?? "Error communicating with external API";
 
     // Check if errorMessage is a string
     if (typeof errorMessage === "string") {
